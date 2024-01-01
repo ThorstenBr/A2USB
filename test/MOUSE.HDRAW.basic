@@ -1,0 +1,32 @@
+10    REM  Uses mouse to draw hi-res graphics
+
+100   GOSUB 1000 : REM Turn on the mouse
+110   PRINT CHR$(4) ; "IN#4"
+120   INPUT "";X,Y,S : REM Read mouse data
+130   IF S = 1 THEN 100 : REM Clear the screen
+140   IF S < 0 THEN 300 : REM Time to quit?
+150   REM Scale mouse position
+160   X = INT(X / 3.66)
+170   Y = INT(Y / 5.35)
+180   HPLOT X, Y
+190   GOTO 120
+
+300   REM Check if time to quit
+310   PRINT CHR$(4) ; "IN#0"
+320   VTAB 22 : PRINT "Press RETURN to cont or ESC to quit"
+330   VTAB 22 : HTAB 39 : GET A$ : POKE -16368,0
+340   IF A$ = CHR$(13) THEN HOME : GOTO 110
+350   IF A$ <> CHR$(27) THEN 330
+360   REM Clear screen and zero mouse
+370   TEXT : HOME
+380   PRINT CHR$(4) ; "PR#4" : PRINT CHR$(0)
+390   PRINT CHR$(4) ; "PR#0"
+400   END
+
+1000  REM Clear screen and initialize mouse
+1010  HOME : HGR
+1020  HCOLOR = 7
+1030  PRINT CHR$(4) ; "PR#4" : PRINT CHR$(1)
+1040  PRINT CHR$(4) ; "PR#0"
+1050  RETURN
+
