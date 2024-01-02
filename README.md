@@ -18,7 +18,7 @@ Currently two modifications need to be made to A2VGA boards, to enable the A2USB
 
 Currently, no PCB design is available yet, which includes these changes as an option. But they are easy to add:
 
-* I used a through-hole PCB design from [Ralle Palaveev](https://github.com/rallepalaveev/analog), since this is easier to tinker with.
+* I used this [through-hole PCB design]((https://github.com/rallepalaveev/analog), since this is easier to tinker with.
 * Two PICO pins need to be bridged to enable "USB host" support, so the PICO can power a device connected to the USB port: **VBUS** & **VSYS** (pins 39+40):
 
     ![VBUS/VSYS](Photos/A2USB_UsbHostPins.jpg)
@@ -39,7 +39,7 @@ Currently, no PCB design is available yet, which includes these changes as an op
 
     ![IRQ Extension](Photos/A2USB_ExtensionBottom.jpg)
 
-* Hopefully some A2VGA PCB designs will add optional IRQ support (I currently to not plan to start an own PCB fork).
+* Hopefully some A2VGA PCB designs will add optional IRQ support (I currently do not plan to start an own PCB fork).
 
 # Installation
 * Download the latest A2USB firmware from the [Releases](/Releases) section.
@@ -55,6 +55,6 @@ It is based on software...
 
 * ... from Mark Aikens' [Apple II VGA project](https://github.com/markadev/AppleII-VGA/), and
 * ... from David Kuder's [A2analog project](https://github.com/V2RetroComputing/analog).
-* I was using a PCB design from [Ralle Palaveev](https://github.com/rallepalaveev/analog).
+* I was using Ralle Palaveev's [PCB design with DIP ICs](https://github.com/rallepalaveev/analog).
 
 Many thanks for the excellent work, which is a base for the A2USB firmware.

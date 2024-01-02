@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
+set(PICO_STDIO_UART OFF)
+set(PICO_STDIO_USB  OFF)
+
 if (NOT PICO_SDK_PATH)
    message(FATAL_ERROR "PICO_SDK_PATH is not set! Provide PICO_SDK_PATH as an environment variable.")
 else()
@@ -19,8 +22,8 @@ project(${PROJECT} C CXX ASM)
 set(FAMILY rp2040)
 set(BOARD pico_sdk)
 
-include(${PICO_SDK_PATH}/lib/tinyusb/hw/bsp/family_support.cmake)
-family_initialize_project(A2-USB ${CMAKE_CURRENT_LIST_DIR})
+enable_language(C CXX ASM)
+pico_sdk_init()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPICO_USE_MALLOC_MUTEX=1")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DFUNCTION_LED=1")
@@ -41,6 +44,16 @@ if(${CMAKE_CURRENT_BINARY_DIR} MATCHES "-DEBUG")
   message(WARNING "Building DEBUG version for bench testing! *****************************************************")
   set(BINARY_TAGS "${BINARY_TAGS}-DEBUG")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDEBUG_OUTPUT=1")
+  set(DEBUG_MODE 1)
+  set(PICO_STDIO_UART ON)
+else()
+  set(DEBUG_MODE 0)
+endif()
+
+if(${CMAKE_CURRENT_BINARY_DIR} MATCHES "-PROFILER")
+  message(WARNING "Building PROFILER version! *****************************************************")
+  set(BINARY_TAGS "${BINARY_TAGS}-PROFILER")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DFUNCTION_PROFILER=1")
 endif()
 
 if(${CMAKE_CURRENT_BINARY_DIR} MATCHES "-LOGGER")
@@ -65,6 +78,10 @@ set(BINARY_TAGS "${BINARY_TAGS}-v${FW_VERSION}")
 # executable name
 add_executable(A2${BINARY_TAGS})
 
+if(${DEBUG_MODE} MATCHES 1)
+    target_link_libraries(A2${BINARY_TAGS} PUBLIC pico_stdio_uart)
+endif()
+
 if(${CMAKE_CURRENT_BINARY_DIR} MATCHES "-4ns")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCONFIG_SYSCLOCK=252 -DPICO_FLASH_SPI_CLKDIV=8 -DOVERCLOCKED=1")
  if(${CMAKE_CURRENT_BINARY_DIR} MATCHES "-gs")
@@ -87,7 +104,6 @@ endif()
 
 # enable compiler warnings
 add_compile_options(-Wall ${A2_OPTIONS})
-
 
 # disable std output via USB
 pico_enable_stdio_usb(A2${BINARY_TAGS} 0)
@@ -114,16 +130,17 @@ target_include_directories(A2${BINARY_TAGS} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/usb)
 
-# configure family target
-family_configure_target(A2${BINARY_TAGS})
+# configure outputs target
+pico_add_extra_outputs(A2${BINARY_TAGS})
 
 # set libraries to be linked
 target_link_libraries(A2${BINARY_TAGS} PUBLIC
         pico_multicore
         pico_stdlib
         tinyusb_host
+#        tinyusb_additions
         hardware_resets
-        hardware_irq
+#        hardware_irq
         hardware_dma
         hardware_pio
         hardware_flash
