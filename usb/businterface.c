@@ -158,7 +158,7 @@ uint8_t __time_critical_func(usb_busread)(uint32_t address)
 void __time_critical_func(usb_reset)()
 {
   // Reset when the Apple II resets
-  mouseControllerInit();
+  mouseControllerReset();
   ROMOffset = 0;
 #ifdef FUNCTION_LOGGING
   // stop recording when RESET triggers

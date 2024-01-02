@@ -1,20 +1,23 @@
 #include "buffers.h"
 
+#ifndef FUNCTION_USB
 volatile uint32_t soft_switches = 0;
 volatile uint32_t internal_flags = IFLAGS_OLDCOLOR | IFLAGS_INTERP | IFLAGS_V7_MODE3;
+#endif
 
 volatile uint8_t reset_state = 0;
 
 volatile uint8_t cardslot = 0;
-volatile uint32_t busactive = 0;
 
-volatile uint8_t __attribute__((section (".appledata."))) apple_memory[64*1024];
-#ifndef FUNCTION_USB
-volatile uint8_t __attribute__((section (".appledata."))) private_memory[64*1024];
-#endif
 #ifdef FUNCTION_LOGGING
 volatile uint32_t __attribute__((section (".appledata."))) LogMemory[16*1024];
 #endif
+
+#ifndef FUNCTION_USB
+volatile uint32_t busactive = 0;
+
+volatile uint8_t __attribute__((section (".appledata."))) apple_memory[64*1024];
+volatile uint8_t __attribute__((section (".appledata."))) private_memory[64*1024];
 
 volatile uint8_t jumpers = 0;
 
@@ -61,3 +64,4 @@ volatile uint8_t *slot6rom = apple_memory + 0xc600;
 /* Slot 7: ProDOS ROM Disk */
 volatile uint8_t *slot7io  = apple_memory + 0xc0f0;
 volatile uint8_t *slot7rom = apple_memory + 0xc700;
+#endif

@@ -80,10 +80,15 @@
 T6520 Pia;
 
 /** Initialize the PIA module at startup. */
-static void PIA6520_init(void)
+static void __time_critical_func(PIA6520_init)(void)
 {
     // wipe internal state
-    memset(&Pia, 0, sizeof(Pia));
+    //memset(&Pia, 0, sizeof(Pia));
+    *((uint64_t*)&Pia) = 0;
+    *((uint16_t*)&Pia.IA) = 0;
+#ifndef FEATURE_DISABLE_PIA_IRQS
+    *((uint16_t*)&Pia.IRQA) = 0;
+#endif
 }
 
 #ifndef FEATURE_DISABLE_PIA_IRQS

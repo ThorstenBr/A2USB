@@ -29,8 +29,11 @@
 
 #include "PIA6520.h"
 
-/** Initialization at startup/reset */
+/** Initialization at startup */
 extern void mouseControllerInit         (void);
+
+/** Run-time reset */
+extern void mouseControllerReset        (void);
 
 /** Loop / Run method to process slave commands */
 extern void mouseControllerRun          (void);
@@ -42,7 +45,7 @@ extern void mouseControllerMoveXY       (int8_t X, int8_t Y);
 extern void mouseControllerUpdateButton (uint8_t ButtonNr, bool Pressed);
 
 /** Get byte from current ROM page */
-extern volatile uint8_t MouseInterfaceROM[]; // explicitly not "const": data needs to be in RAM for faster access
+extern uint8_t MouseInterfaceROM[]; // explicitly not "const": data needs to be in RAM for faster access
 
 /** Read from the Slot ROM */
 #define MOUSE_INTERFACE_READ_ROM(Address)           (MouseInterfaceROM[(Address&0xff) | ((Pia.ORB & Pia.DDRB & 0x0E)<<7)])

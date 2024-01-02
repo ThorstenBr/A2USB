@@ -202,6 +202,7 @@ static void __noinline __time_critical_func(core1_loop)() {
                 {
                      reset_state++;
                      usb_reset();
+                     continue;
                 }
                 else
                      reset_state=0;
@@ -213,6 +214,7 @@ static void __noinline __time_critical_func(core1_loop)() {
                 soft_switches &= ~SOFTSW_DGR;
                 internal_flags &= ~(IFLAGS_TERMINAL | IFLAGS_TEST);
                 internal_flags |= IFLAGS_V7_MODE3;
+                // fall-through
  #endif
             default:
                 reset_state = 0;
@@ -228,6 +230,11 @@ static void __noinline __time_critical_func(core1_loop)() {
     }
 }
 
+#ifdef FUNCTION_USB
+static void __time_critical_func(core0_loop)() {
+    for(;;) usb_main();
+}
+#else
 static void DELAYED_COPY_CODE(core0_loop)() {
 #ifdef FUNCTION_VGA
     for(;;) vgamain();
@@ -235,10 +242,8 @@ static void DELAYED_COPY_CODE(core0_loop)() {
 #ifdef FUNCTION_Z80
     for(;;) z80main();
 #endif
-#ifdef FUNCTION_USB
-    for(;;) usb_main();
-#endif
 }
+#endif
 
 extern uint32_t __ram_delayed_copy_source__[];
 extern uint32_t __ram_delayed_copy_start__[];
@@ -259,6 +264,7 @@ int main() {
 
     multicore_launch_core1(core1_loop);
 
+#ifndef FUNCTION_USB
     // Load 6502 code from flash into the memory buffer
     memcpy32((void*)apple_memory+0xC000, (void *)FLASH_6502_BASE, FLASH_6502_SIZE);
 
@@ -288,6 +294,7 @@ int main() {
     apple_memory[0xC5FD] = '5';
     apple_memory[0xC6FD] = '6';
     apple_memory[0xC7FD] = '7';
+#endif
 
     // Finish copying remaining data and code to RAM from flash
     dmacpy32(__ram_delayed_copy_start__, __ram_delayed_copy_end__, __ram_delayed_copy_source__);

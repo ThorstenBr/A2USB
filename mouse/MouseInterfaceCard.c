@@ -608,6 +608,20 @@ void mouseControllerRun(void)
     OldInt = Mouse.IntState;
 }
 
+void __time_critical_func(mouseControllerReset)(void)
+{
+    PIA6520_init();
+
+    // quick memory init
+    for (uint32_t i=0;i<sizeof(Mouse)/8;i++)
+    {
+        ((volatile uint64_t*)&Mouse)[i] = 0;
+    }
+    Mouse.Clamp.MaxX = 1023;
+    Mouse.Clamp.MaxY = 1023;
+    Mouse.VblIntervalUs = VBL_TIMER_DEFAULT;
+}
+
 void mouseControllerInit(void)
 {
 #ifdef PICO_BUILD
@@ -622,13 +636,7 @@ void mouseControllerInit(void)
     }
     IRQ_DEASSERT();
 #endif
-
-    PIA6520_init();
-
-    memset(&Mouse, 0, sizeof(Mouse));
-    Mouse.Clamp.MaxX = 1023;
-    Mouse.Clamp.MaxY = 1023;
-    Mouse.VblIntervalUs = VBL_TIMER_DEFAULT;
+    mouseControllerReset();
 }
 
 #endif // FUNCTION_MOUSE

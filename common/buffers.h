@@ -5,16 +5,17 @@
 extern volatile uint8_t reset_state;
 
 extern volatile uint8_t cardslot;
-extern volatile uint32_t busactive;
 
-extern volatile uint8_t apple_memory[64*1024];
 #ifndef FUNCTION_USB
+extern volatile uint32_t busactive;
+extern volatile uint8_t apple_memory[64*1024];
 extern volatile uint8_t private_memory[64*1024];
 #endif
 #ifdef FUNCTION_LOGGING
 extern volatile uint32_t LogMemory[16*1024];
 #endif
 
+#ifndef FUNCTION_USB
 extern volatile uint16_t cfptr;
 extern volatile uint8_t cfbuf[4096];
 
@@ -22,6 +23,7 @@ extern volatile uint8_t cfbuf[4096];
 #define config_rpybuf ((uint8_t*)(apple_memory+0xC0F8+(cardslot<<8)))
 
 extern volatile uint8_t jumpers;
+#endif
 
 #ifdef FUNCTION_VGA
 extern volatile uint8_t *text_p1;

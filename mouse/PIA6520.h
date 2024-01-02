@@ -33,8 +33,7 @@ typedef struct
   volatile uint8_t CRA;  /**< control register A */
   volatile uint8_t CRB;  /**< control register B */
   
-  volatile uint8_t spacer[64-6];  /**< spacer, keep next bytes in
-                                       separate cache line */
+  volatile uint64_t spacer; /**< spacer, separate Core 0+1 mem area */
   
   volatile uint8_t IA;  /**< input data port A */
   volatile uint8_t IB;  /**< input data port B */
@@ -59,8 +58,8 @@ extern T6520 Pia;
 /** Provide new input data for external port B */
 #define PIA6520_inputB(data) Pia.IB = data;
 
-void    __time_critical_func(PIA6520_write)   (uint32_t address, uint8_t data);
-uint8_t __time_critical_func(PIA6520_read)    (uint16_t address);
+void    PIA6520_write(uint32_t address, uint8_t data);
+uint8_t PIA6520_read (uint16_t address);
 
 #define PIA6520_fastwrite(address, data)\
 { \

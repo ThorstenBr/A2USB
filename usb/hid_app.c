@@ -307,7 +307,8 @@ static void process_generic_report(uint8_t dev_addr, uint8_t instance, uint8_t c
         process_mouse_report((hid_mouse_report_t const*) report);
         break;
 
-      default: break;
+      default:
+       break;
     }
   }
 }
