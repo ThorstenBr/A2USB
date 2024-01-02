@@ -224,7 +224,7 @@ static void process_mouse_report(hid_mouse_report_t const * report)
   if (report->x || report->y)
   {
     mouseControllerMoveXY(report->x, report->y);
-  #ifdef FUNCTION_LED
+  #if (defined FUNCTION_LED)&&(!defined FUNCTION_PROFILER)
     static uint8_t toggle=0;
     gpio_put(PICO_DEFAULT_LED_PIN, toggle);
     toggle ^= 1;

@@ -35,6 +35,7 @@ SOFTWARE.
 #include "common/buffers.h"
 #include "common/flash.h"
 #include "common/dmacopy.h"
+#include "hardware/structs/systick.h"
 
 #ifdef FUNCTION_Z80
 #include "z80/z80buf.h"
@@ -50,9 +51,14 @@ SOFTWARE.
 #include <pico/cyw43_arch.h>
 #endif
 
-extern uint32_t LogTrigger;
-
+#ifdef FUNCTION_LOGGING
 #define LOGTRIGGER_STARTADDRESS 0xC400
+extern uint32_t LogTrigger;
+#endif
+
+#ifdef FUNCTION_PROFILER
+uint32_t ProfilerMaxTime;
+#endif
 
 static void __noinline __time_critical_func(core1_loop)() {
     uint32_t value;
@@ -62,9 +68,22 @@ static void __noinline __time_critical_func(core1_loop)() {
     usb_core1init();
 #endif
 
+#ifdef FUNCTION_PROFILER
+    // enable systick timer, but keep timer exception disabled
+    systick_hw->csr = 0x5;
+    systick_hw->rvr = 0x00FFFFFF;
+    systick_hw->cvr = 0x00FFFFFF;
+    ProfilerMaxTime = 0x00FFFFFF;
+#endif
+
     for(;;)
     {
+        // wait for next PIO event
         value = pio_sm_get_blocking(CONFIG_ABUS_PIO, ABUS_MAIN_SM);
+#ifdef FUNCTION_PROFILER
+        // start time measurement (count-down timer)
+        systick_hw->cvr = 0x00FFFFFF;
+#endif
         address = (value >> 10) & 0xffff;
 
         if(CARD_SELECT)
@@ -209,9 +228,10 @@ static void __noinline __time_critical_func(core1_loop)() {
                 break;
             case 3:
  #ifdef FUNCTION_VGA
+                soft_switches &= ~0xffff;
                 soft_switches |= SOFTSW_TEXT_MODE;
-                soft_switches &= ~SOFTSW_80COL;
-                soft_switches &= ~SOFTSW_DGR;
+                //soft_switches &= ~SOFTSW_80COL;
+                //soft_switches &= ~SOFTSW_DGR;
                 internal_flags &= ~(IFLAGS_TERMINAL | IFLAGS_TEST);
                 internal_flags |= IFLAGS_V7_MODE3;
                 // fall-through
@@ -226,6 +246,13 @@ static void __noinline __time_critical_func(core1_loop)() {
 #endif
 #ifdef FUNCTION_Z80
         z80_businterface(address, value);
+#endif
+#ifdef FUNCTION_PROFILER
+        // take timestamp
+        uint32_t t = systick_hw->cvr;
+        // elapsed time is actually: 0x00FFFFFF-t
+        if (t<ProfilerMaxTime)
+          ProfilerMaxTime = t;
 #endif
     }
 }

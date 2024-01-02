@@ -82,11 +82,23 @@ void tuh_umount_cb(uint8_t dev_addr)
 // Blinking Task
 //--------------------------------------------------------------------+
 #ifdef FUNCTION_LED
+#ifdef FUNCTION_PROFILER
+extern uint32_t ProfilerMaxTime;
+#endif
 
 void usb_led_blinking(void)
 {
   static uint32_t start_ms = 0;
-#if 1
+#ifdef FUNCTION_PROFILER
+  uint32_t interval_ms = 500;
+  if (millis() - start_ms < interval_ms)
+    return;
+  // LED indicates when core1 exceeded 300ns execution time
+  gpio_put(PICO_DEFAULT_LED_PIN, ((0x00FFFFFF-ProfilerMaxTime)>0x4a));//each tick is 4ns
+  //OK:4a,BAD:0x47
+  // reset profiler measurement
+  ProfilerMaxTime = 0x00FFFFFF;
+#elif 1
   // only show activity when USB mouse sends reports
   uint32_t interval_ms = 2000;
   if (millis() - start_ms < interval_ms)

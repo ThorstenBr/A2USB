@@ -48,6 +48,10 @@ uint32_t ROMOffset = 0;
 uint8_t  ROMWriteEnable = 0;
 #endif
 
+#ifdef FUNCTION_PROFILER
+extern uint32_t ProfilerMaxTime;
+#endif
+
 void __time_critical_func(usb_buswrite)(uint32_t address, uint32_t value)
 {
 #ifdef FUNCTION_MOUSE
