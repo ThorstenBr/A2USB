@@ -303,8 +303,8 @@ static void mouseCommandClear()
 
 static void mouseCommandPos()
 {
-    Mouse.Current.X = Mouse.WriteBuffer[0] | (Mouse.WriteBuffer[1] << 8);
-    Mouse.Current.Y = Mouse.WriteBuffer[2] | (Mouse.WriteBuffer[3] << 8);
+    Mouse.Current.X = Mouse.WriteBuffer[3] | (Mouse.WriteBuffer[2] << 8);
+    Mouse.Current.Y = Mouse.WriteBuffer[1] | (Mouse.WriteBuffer[0] << 8);
     clampXY();
     Mouse.Last.X = Mouse.Current.X;
     Mouse.Last.Y = Mouse.Current.Y;
