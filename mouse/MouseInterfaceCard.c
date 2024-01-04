@@ -188,7 +188,7 @@
 #define MOUSE_MODE_ENABLED    (1<<0)
 #define MOUSE_MODE_MOVED_IRQ  ((1<<1)|MOUSE_MODE_ENABLED)
 #define MOUSE_MODE_BUTTON_IRQ ((1<<2)|MOUSE_MODE_ENABLED)
-#define MOUSE_MODE_VBL_IRQ    ((1<<3)|MOUSE_MODE_ENABLED)
+#define MOUSE_MODE_VBL_IRQ    (1<<3) // VBL interrupts are active even without "MOUSE_MODE_ENABLED"!
 
 /* VBL Timeouts */
 #define VBL_TIMER_60HZ     16666 /*us, = 16.666ms, for NTSC */
