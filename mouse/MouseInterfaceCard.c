@@ -88,7 +88,7 @@
       0xCn: UNKNOWN_C0. Implemented by routine at offset $Cn1F.
       0xDn: Reserved/unused.
       0xEn: Reserved/unused.
-      0xFn: UNKNOWN_F0. Implemented by routine at offset $Cn1A. Expects a bit of data in A/bit 0.
+      0xFn: RDMEMMOUSE. Read memory of slave controller. Documented for GETCLAMP workaround. Expects 2 byte address. Returns 1 data byte.
 
    Mouse Operating Modes:
     Bit 0: Turn mouse on
@@ -172,7 +172,7 @@
 #define COMMAND_C0          0xC0 // unknown command
 #define COMMAND_D0          0xD0 // not implemented in 6805
 #define COMMAND_E0          0xE0 // not implemented in 6805
-#define COMMAND_F0          0xF0 // unknown command
+#define COMMAND_RDMEMMOUSE  0xF0 // documented in 1986/88 Apple II Technical Notes, Mouse Clamping.
 
 /* Mouse Status */
 #define STATUS_WAS_BUTTON1    (1<<0)
@@ -325,6 +325,50 @@ static void mouseCommandInit()
     IRQ_DEASSERT();
 }
 
+/* See Apple II Technical Notes, Mouse #7: Mouse Clamping.
+ * Apple documented a workaround how to read the clamping values from
+ * the Mouse Card. They used a previously undocumnted internal command
+ * to read a location form the slave controller's memory.
+ * Addresses 0x47-0x4E were documented, which contain the clamping boundaries.
+ */
+static void mouseCommandReadMem()
+{
+    // read and return the clamp values
+    uint16_t address = Mouse.WriteBuffer[1] | (Mouse.WriteBuffer[0] << 8);
+    // only access to CLAMP boundaries was documented
+    switch(address)
+    {
+        case 0x47:
+            Mouse.ReadBuffer[0] = Mouse.Clamp.MinX>>8; // MinXH
+            break;
+        case 0x48:
+            Mouse.ReadBuffer[0] = Mouse.Clamp.MinY>>8; //MinYH
+            break;
+        case 0x49:
+            Mouse.ReadBuffer[0] = Mouse.Clamp.MinX; // MinXL
+            break;
+        case 0x4a:
+            Mouse.ReadBuffer[0] = Mouse.Clamp.MinY; // MinYL
+            break;
+        case 0x4b:
+            Mouse.ReadBuffer[0] = Mouse.Clamp.MaxX>>8; // MaxXH
+            break;
+        case 0x4c:
+            Mouse.ReadBuffer[0] = Mouse.Clamp.MaxY>>8; // MaxYH
+            break;
+        case 0x4d:
+            Mouse.ReadBuffer[0] = Mouse.Clamp.MaxX; //MaxXL
+            break;
+        case 0x4e:
+            Mouse.ReadBuffer[0] = Mouse.Clamp.MaxY; // MaxYL
+            break;
+        default:
+            Mouse.ReadBuffer[0] = 0x00; // illegal/undocumented memory address
+            break;
+    }
+    Mouse.ReadPos = 1; // 1 byte to be read
+}
+
 static void mouseCommandClamp()
 {
     uint16_t MinClamp = Mouse.WriteBuffer[3] | (Mouse.WriteBuffer[1] << 8);
@@ -364,21 +408,21 @@ static void mouseCommand(void)
 {
     switch(Mouse.Command & 0xF0)
     {
-        case COMMAND_SETMOUSE:    mouseCommandSet();   break;
-        case COMMAND_READMOUSE:   mouseCommandRead();  break;
-        case COMMAND_SERVEMOUSE:  mouseCommandServe(); break;
-        case COMMAND_CLEARMOUSE:  mouseCommandClear(); break;
-        case COMMAND_POSMOUSE:    mouseCommandPos();   break;
-        case COMMAND_INITMOUSE:   mouseCommandInit();  break;
-        case COMMAND_CLAMPMOUSE:  mouseCommandClamp(); break;
-        case COMMAND_HOMEMOUSE:   mouseCommandHome();  break;
-        case COMMAND_TIMEMOUSE:   mouseCommandTime();  break;
-        case COMMAND_80:          /*?*/                break;
-        case COMMAND_A0:          /*?*/                break;
-        case COMMAND_B0:          /*?*/                break;
-        case COMMAND_C0:          /*?*/                break;
-        case COMMAND_F0:          /*?*/                break;
-        default:                  /*?*/                break;
+        case COMMAND_SETMOUSE:    mouseCommandSet();    break;
+        case COMMAND_READMOUSE:   mouseCommandRead();   break;
+        case COMMAND_SERVEMOUSE:  mouseCommandServe();  break;
+        case COMMAND_CLEARMOUSE:  mouseCommandClear();  break;
+        case COMMAND_POSMOUSE:    mouseCommandPos();    break;
+        case COMMAND_INITMOUSE:   mouseCommandInit();   break;
+        case COMMAND_CLAMPMOUSE:  mouseCommandClamp();  break;
+        case COMMAND_HOMEMOUSE:   mouseCommandHome();   break;
+        case COMMAND_TIMEMOUSE:   mouseCommandTime();   break;
+        case COMMAND_80:          /*?*/                 break;
+        case COMMAND_A0:          /*?*/                 break;
+        case COMMAND_B0:          /*?*/                 break;
+        case COMMAND_C0:          /*?*/                 break;
+        case COMMAND_RDMEMMOUSE:  mouseCommandReadMem();break;
+        default:                  /*?*/                 break;
     }
 }
 
@@ -399,6 +443,7 @@ static void mouseControllerAcceptData(void)
             case COMMAND_INITMOUSE:                       break; // no parameter bytes
             case COMMAND_CLAMPMOUSE:  Mouse.WritePos = 4; break; // 4 parameter bytes
             case COMMAND_A0:          Mouse.WritePos = 1; break; // 1 parameter byte (no clue what is being sent)
+            case COMMAND_RDMEMMOUSE:  Mouse.WritePos = 2; break; // 2 parameter bytes
             case COMMAND_TIMEMOUSE:
                 switch(Mouse.Command & 0xc)
                 {
