@@ -1,7 +1,8 @@
-demos/*
+local/*
 BUILD*
 IMPORT/*
 OLD*
+lib/a2pico
 blog/*
 *-backups
 *-cache

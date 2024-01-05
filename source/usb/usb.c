@@ -31,7 +31,6 @@
 #include <string.h>
 
 #include "hardware/gpio.h"
-#include "common/buffers.h"
 #include "tusb.h"
 
 #ifdef FUNCTION_MOUSE
@@ -117,22 +116,6 @@ void usb_led_blinking(void)
   start_ms += interval_ms;
 }
 #endif
-
-void __time_critical_func(usb_core1init)()
-{
-#ifdef FUNCTION_LOGGING
-  memset((void*)LogMemory, 0, sizeof(LogMemory));
-#endif
-
-#if 0
-  // preload cache on CPU CORE1
-  volatile uint8_t x = 0;
-  for (uint32_t i=0;i<2048;i++)
-  {
-    x += MouseInterfaceROM[i];
-  }
-#endif
-}
 
 #ifdef DEBUG_OUTPUT
   static uart_inst_t *uart_inst;

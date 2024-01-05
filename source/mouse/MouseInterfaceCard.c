@@ -128,7 +128,7 @@
 #ifdef PICO_BUILD
   #include <pico/stdlib.h>
   #include <pico/multicore.h>
-  #include "common/config.h"
+  #include "a2platform.h"
 #endif
 
 // include the ROM image here
@@ -143,9 +143,9 @@
 
 #ifdef PICO_BUILD
     /** macro to set IRQ pin */
-    #define IRQ_ASSERT()    gpio_put(CONFIG_PIN_IRQ, 1)
+    #define IRQ_ASSERT()    A2_SET_IRQ(1)
     /** macro to clear IRQ pin */
-    #define IRQ_DEASSERT()  gpio_put(CONFIG_PIN_IRQ, 0)
+    #define IRQ_DEASSERT()  A2_SET_IRQ(0)
 #endif
 
 // inline the PIA emulation module for better performance
@@ -669,18 +669,6 @@ void __time_critical_func(mouseControllerReset)(void)
 
 void mouseControllerInit(void)
 {
-#ifdef PICO_BUILD
-    // prepare PICO IRQ output pin
-    static bool done=false;
-    if (!done)
-    {
-      done = true;
-      IRQ_DEASSERT();
-      gpio_init(CONFIG_PIN_IRQ);
-      gpio_set_dir(CONFIG_PIN_IRQ, GPIO_OUT);
-    }
-    IRQ_DEASSERT();
-#endif
     mouseControllerReset();
 }
 

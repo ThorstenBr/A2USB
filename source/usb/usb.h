@@ -23,7 +23,6 @@
 
 #ifdef FUNCTION_USB
 
-extern void    usb_core1init(void);
 extern void    usb_main(void);
 extern void    usb_reset(void);
 extern void    usb_buswrite(uint32_t address, uint32_t value);

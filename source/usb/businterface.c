@@ -24,10 +24,7 @@
  */
 
 #include <string.h>
-#include <hardware/pio.h>
-#include "common/config.h"
-#include "common/buffers.h"
-#include "common/abus.h"
+#include "a2platform.h"
 #include "usb/usb.h"
 
 #ifdef FUNCTION_MOUSE
@@ -55,7 +52,7 @@ extern uint32_t ProfilerMaxTime;
 void __time_critical_func(usb_buswrite)(uint32_t address, uint32_t value)
 {
 #ifdef FUNCTION_MOUSE
-    if(CARD_DEVSEL)
+    if(A2_IS_DEVSEL(address))
     {
   #ifdef FUNCTION_LOGGING
         if ((address&0x7)==7)
@@ -117,7 +114,7 @@ void __time_critical_func(usb_buswrite)(uint32_t address, uint32_t value)
     }
  #if FUNCTION_ROM_WRITE // ROM Write Enable
     else
-    if (CARD_IOSEL)
+    if (A2_IS_IOSEL(address))
     {
         // we ignore WRITEs to the ROM area for now (we may add config update support later)
         if (ROMWriteEnable)
@@ -133,39 +130,24 @@ uint8_t __time_critical_func(usb_busread)(uint32_t address)
 {
 #ifdef FUNCTION_MOUSE
     // our slot's DEVSELECT or IOSELECT is active
-    if(CARD_DEVSEL)
+    if(A2_IS_DEVSEL(address))
     {
         // PIA registers are being read
-        CONFIG_ABUS_PIO->txf[ABUS_DEVICE_READ_SM] = PIA6520_read(address);
+        A2_PUSHDATA(PIA6520_read(address));
     }
     else
-    if (CARD_IOSEL)
+    if (A2_IS_IOSEL(address))
     {
- #ifdef FUNCTION_LOGGING
         address &= 0xff;
+ #ifdef FUNCTION_LOGGING
         if (LogOffset)
         {
           address |= (LogOffset&0xffff);
-          CONFIG_ABUS_PIO->txf[ABUS_DEVICE_READ_SM] = (address<(LogCounter<<2)) ? ((uint8_t*)LogMemory)[address] : 0;
+          A2_PUSHDATA((address<(LogCounter<<2)) ? ((uint8_t*)LogMemory)[address] : 0);
+          return;
         }
-        else
-        {
-          CONFIG_ABUS_PIO->txf[ABUS_DEVICE_READ_SM] = MouseInterfaceROM[address | ROMOffset];
-        }
- #else
-        CONFIG_ABUS_PIO->txf[ABUS_DEVICE_READ_SM] = MouseInterfaceROM[(address&0xff) | ROMOffset];
  #endif
+        A2_PUSHDATA(MouseInterfaceROM[address | ROMOffset]);
     }
-#endif
-}
-
-void __time_critical_func(usb_reset)()
-{
-  // Reset when the Apple II resets
-  mouseControllerReset();
-  ROMOffset = 0;
-#ifdef FUNCTION_LOGGING
-  // stop recording when RESET triggers
-  LogTrigger = 0;
 #endif
 }

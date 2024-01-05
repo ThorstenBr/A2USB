@@ -3,7 +3,6 @@ MIT License
 
 Copyright (c) 2021-2022 Mark Aikens
 Copyright (c) 2022-2023 David Kuder
-Copyright (c) 2023-2024 Thorsten Brehm
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +32,6 @@ SOFTWARE.
 #include "common/build.h"
 #include "common/modes.h"
 #include "common/buffers.h"
-#include "common/flash.h"
 #include "common/dmacopy.h"
 #include "hardware/structs/systick.h"
 
@@ -42,82 +40,29 @@ SOFTWARE.
 #include <hardware/uart.h>
 #endif
 
-#ifdef FUNCTION_USB
-#include "usb/usb.h"
-#include "usb/businterface.c"
-#endif
-
 #ifdef RASPBERRYPI_PICO_W
 #include <pico/cyw43_arch.h>
-#endif
-
-#ifdef FUNCTION_LOGGING
-#define LOGTRIGGER_STARTADDRESS 0xC400
-extern uint32_t LogTrigger;
-#endif
-
-#ifdef FUNCTION_PROFILER
-uint32_t ProfilerMaxTime;
 #endif
 
 static void __noinline __time_critical_func(core1_loop)() {
     uint32_t value;
     uint32_t address;
 
-#ifdef FUNCTION_USB
-    usb_core1init();
-#endif
-
-#ifdef FUNCTION_PROFILER
-    // enable systick timer, but keep timer exception disabled
-    systick_hw->csr = 0x5;
-    systick_hw->rvr = 0x00FFFFFF;
-    systick_hw->cvr = 0x00FFFFFF;
-    ProfilerMaxTime = 0x00FFFFFF;
-#endif
-
     for(;;)
     {
         // wait for next PIO event
         value = pio_sm_get_blocking(CONFIG_ABUS_PIO, ABUS_MAIN_SM);
-#ifdef FUNCTION_PROFILER
-        // start time measurement (count-down timer)
-        systick_hw->cvr = 0x00FFFFFF;
-#endif
         address = (value >> 10) & 0xffff;
 
         if(CARD_SELECT)
         {
-#ifdef FUNCTION_USB
-            if(ACCESS_READ)
-              //CONFIG_ABUS_PIO->txf[ABUS_DEVICE_READ_SM] = 
-              usb_busread(address);
-            else
-              usb_buswrite(address, value);
-#else // !FUNCTION_USB
-
             // device read access
             if(ACCESS_READ) {
                 //pio_sm_put(CONFIG_ABUS_PIO, ABUS_DEVICE_READ_SM, apple_memory[address]);
                 CONFIG_ABUS_PIO->txf[ABUS_DEVICE_READ_SM] = apple_memory[address];
             }
-#endif
         }
-        
-  #ifdef FUNCTION_LOGGING
-          if ((LogTrigger==2) && ((LogCounter & 0x4000)==0))
-          {
-            LogMemory[LogCounter++] = (value&0x03ff) | ((value<<6)&0xffff0000);
-            // stop logging on BRK
-            if (address == 0xfffe)
-              LogTrigger = 0;
-          }
-          else
-          if ((LogTrigger==1)&&(address == LOGTRIGGER_STARTADDRESS))
-            LogTrigger = 2;
-  #endif
 
-#ifndef FUNCTION_USB
 
  #ifdef ANALOG_GS
         jumpers = (value >> 26) & 0x3f;
@@ -203,7 +148,6 @@ static void __noinline __time_critical_func(core1_loop)() {
             }
  #endif // FUNCTION_VGA
         } else
-#endif // !FUNCTION_USB    
 
          switch(reset_state) {
             case 0:
@@ -247,21 +191,9 @@ static void __noinline __time_critical_func(core1_loop)() {
 #ifdef FUNCTION_Z80
         z80_businterface(address, value);
 #endif
-#ifdef FUNCTION_PROFILER
-        // take timestamp
-        uint32_t t = systick_hw->cvr;
-        // elapsed time is actually: 0x00FFFFFF-t
-        if (t<ProfilerMaxTime)
-          ProfilerMaxTime = t;
-#endif
     }
 }
 
-#ifdef FUNCTION_USB
-static void __time_critical_func(core0_loop)() {
-    for(;;) usb_main();
-}
-#else
 static void DELAYED_COPY_CODE(core0_loop)() {
 #ifdef FUNCTION_VGA
     for(;;) vgamain();
@@ -270,7 +202,6 @@ static void DELAYED_COPY_CODE(core0_loop)() {
     for(;;) z80main();
 #endif
 }
-#endif
 
 extern uint32_t __ram_delayed_copy_source__[];
 extern uint32_t __ram_delayed_copy_start__[];
@@ -291,7 +222,6 @@ int main() {
 
     multicore_launch_core1(core1_loop);
 
-#ifndef FUNCTION_USB
     // Load 6502 code from flash into the memory buffer
     memcpy32((void*)apple_memory+0xC000, (void *)FLASH_6502_BASE, FLASH_6502_SIZE);
 
@@ -321,15 +251,12 @@ int main() {
     apple_memory[0xC5FD] = '5';
     apple_memory[0xC6FD] = '6';
     apple_memory[0xC7FD] = '7';
-#endif
 
     // Finish copying remaining data and code to RAM from flash
     dmacpy32(__ram_delayed_copy_start__, __ram_delayed_copy_end__, __ram_delayed_copy_source__);
 
-#ifndef FUNCTION_USB
     // Load the config from flash, or defaults
     read_config(true);
-#endif
 
 #if defined(FUNCTION_Z80) && defined(ANALOG_GS)
     uart_init(uart0, sio[0].baudrate);
