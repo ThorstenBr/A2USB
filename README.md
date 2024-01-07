@@ -34,8 +34,14 @@ The following boards can be used to run the A2USB firmware. Some of them require
 
 * [A2VGA PCBs](https://github.com/rallepalaveev/analog) by Ralle Palaveev, using DIP ICs. PCB Rev 1.6 and newer already have the options required for A2USB (see jumper options).
   * His v1.5 PCBs (or older) can also be used, however, they need to be modified to support A2USB. See [modifications](HwModding.md).
-* David Kuder's [A2analog PCB](https://github.com/V2RetroComputing/analog)s can also be used, but currently also require the [modifications](HwModding.md).
-* More supported hardware platforms are coming! Watch this spot...
+
+     ![A2VGA](Photos/A2VGA_Palaveev.jpg)
+
+* David Kuder's [A2analog PCBs](https://github.com/V2RetroComputing/analog) can also be used, but currently also require the [modifications](HwModding.md).
+
+     ![A2analog](Photos/V2analog.jpg)
+
+* More supported hardware platforms are coming! Watch this spot... :)
 
 # Installation
 * Download the latest A2USB firmware ZIP file from the [Releases](/Releases) section.
@@ -52,8 +58,8 @@ The following boards can be used to run the A2USB firmware. Some of them require
 This is an alternate firmware project for A2VGA cards to support a USB interface instead of VGA output.
 It is based on work of...
 
-* ... Mark Aikens [Apple II VGA project](https://github.com/markadev/AppleII-VGA/),
-* ... David Kuder [A2analog project](https://github.com/V2RetroComputing/analog),
-* ... and Ralle Palaveev [A2VGA project](https://github.com/rallepalaveev/analog).
+* ... Mark Aikens: [Apple II VGA project](https://github.com/markadev/AppleII-VGA/)
+* ... David Kuder: [A2analog project](https://github.com/V2RetroComputing/analog)
+* ... and Ralle Palaveev: [A2VGA project](https://github.com/rallepalaveev/analog)
 
 Many thanks for the excellent work, which is a base for the A2USB project!
