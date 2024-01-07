@@ -1,0 +1,19 @@
+all:
+	make -C MOUSE-A2VGA-NTSC-4ns
+	make -C MOUSE-A2VGA-PAL-4ns
+	rm -rf RELEASE/PAL RELEASE/NTSC Release.zip
+	mkdir RELEASE/PAL
+	mkdir RELEASE/NTSC
+
+	cp MOUSE-A2VGA-NTSC-4ns/*.uf2 RELEASE/NTSC/.
+	cp MOUSE-A2VGA-NTSC-4ns/*.hex RELEASE/NTSC/.
+	cp MOUSE-A2VGA-NTSC-4ns/*.elf RELEASE/NTSC/.
+
+	cp MOUSE-A2VGA-PAL-4ns/*.uf2 RELEASE/PAL/.
+	cp MOUSE-A2VGA-PAL-4ns/*.hex RELEASE/PAL/.
+	cp MOUSE-A2VGA-PAL-4ns/*.elf RELEASE/PAL/.
+	
+	cd RELEASE && zip -r ../Release.zip *
+
+clean:
+	rm -rf RELEASE/PAL RELEASE/NTSC

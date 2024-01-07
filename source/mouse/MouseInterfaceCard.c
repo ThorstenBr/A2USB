@@ -193,7 +193,13 @@
 /* VBL Timeouts */
 #define VBL_TIMER_60HZ     16666 /*us, = 16.666ms, for NTSC */
 #define VBL_TIMER_50HZ     20000 /*us, for PAL*/
-#define VBL_TIMER_DEFAULT  VBL_TIMER_60HZ
+
+/* VBL default frequency depends on region/firmware (PAL vs NTSC) */
+#ifdef FUNCTION_PAL
+    #define VBL_TIMER_DEFAULT  VBL_TIMER_50HZ  // for PAL
+#else
+    #define VBL_TIMER_DEFAULT  VBL_TIMER_60HZ  // for NTSC
+#endif
 
 typedef struct
 {
