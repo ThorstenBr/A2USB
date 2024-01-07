@@ -5,25 +5,35 @@ This projects provides alternate firmware for A2VGA cards to support a USB inter
 
 A normal USB mouse can be used with the Apple II. The emulated *Mouse Interface Card* works well with applications like...
 
-**MousePaint**:
+* ... **MousePaint**:
 
-![MousePaint](Photos/A2USB_MousePaint.jpg)
+    ![MousePaint](Photos/A2USB_MousePaint.jpg)
 
-or **A2Desktop**:
+* ... or **A2Desktop**:
 
-![A2Desktop](Photos/A2USB_A2Desktop.jpg)
+    ![A2Desktop](Photos/A2USB_A2Desktop.jpg)
 
 # Hardware
-Required basics:
+## Required basics
 
 * You need a simple **MicroUSB to USB-A adpater**, so you can connect a standard USB mouse to the PICO's USB connector.
+
+    * Either use an adapter cable:
+
+        ![Adapter Cable](Photos/A2USB_AdapterCable2.jpg)
+
+    * Or a simple plug adapter:
+
+        ![Plug Adapter](Photos/A2USB_AdapterPlug.jpg)
+
 * And you need a **standard USB mouse**. Anything conforming to the common "USB HID" standard should work.
-You can also use a **wireless mouse**, their tiny transceiver plugs also implement a standard USB HID interface.
+* You can also use a **wireless mouse**. Their tiny transceiver plugs also implement a standard USB HID interface.
 
-The following boards can be used to run the A2USB firmware. Some of them may require modification:
+## Supported PCBs
+The following boards can be used to run the A2USB firmware. Some of them require modification:
 
-* [A2VGA PCBs](https://github.com/rallepalaveev/analog) by Ralle Palaveev, using DIP ICs. PCB Rev 1.6 and newer already have the options required for A2USB.
-  * His v1.5 PCBs (or older) can also be used, however they need to be modified to support A2USB. See [modifications](HwModding.md).
+* [A2VGA PCBs](https://github.com/rallepalaveev/analog) by Ralle Palaveev, using DIP ICs. PCB Rev 1.6 and newer already have the options required for A2USB (see jumper options).
+  * His v1.5 PCBs (or older) can also be used, however, they need to be modified to support A2USB. See [modifications](HwModding.md).
 * David Kuder's [A2analog PCB](https://github.com/V2RetroComputing/analog)s can also be used, but currently also require the [modifications](HwModding.md).
 * More supported hardware platforms are coming! Watch this spot...
 
@@ -31,7 +41,7 @@ The following boards can be used to run the A2USB firmware. Some of them may req
 * Download the latest A2USB firmware ZIP file from the [Releases](/Releases) section.
    * ZIP file contains separate firmware for NTSC/PAL regions. Difference is only the default mouse interrupt frequency (PAL 50Hz / NTSC 60Hz).
    * According to Apple II Technical Notes, the original Mouse Interface Card was also shipped with variants for PAL / NTSC, with differing default interrupt rates.
-* **Remove the PICO (or entire A2VGA card) from the Apple II** (!)
+* **Remove the PICO (or entire card) from the Apple II**.
 * Connect the PICO's USB to your PC/MAC **while pressing the BOOTSEL button**.
 * Drag & drop the A2USB firmware file **A2USB-MOUSE-...-4ns.uf2** from the Releases ZIP archive to your PICO.
 * Wait a second.
