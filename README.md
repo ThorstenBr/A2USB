@@ -69,14 +69,14 @@ The card also had an option to trigger an interrupt, to notify the 6502. This in
 
 ### Here's the original Apple II Mouse Interface Card design:
 
-                            +-----------+                                         +--------------+
-                         ___|  2KB ROM  |                             ____________|Apple II Mouse|
-    +------+            /   +-----------+                            /            +--------------+
+                            +-----------+                                       +--------------+
+                         ___|  2KB ROM  |                             __________|Apple II Mouse|
+    +------+            /   +-----------+                            /          +--------------+
     | 6502 |___________/         | page selection                 |plug|
-    | CPU  |\ Apple    \    +-----------+                  +-----------------+
+    | CPU  |\ Apple    \    +-----------+                  +------+----+-----+
     +------+ \ Bus      \___|    PIA    |__________________|     MC6805      |
               \             |  MC6821   | 8bit + handshake | MicroController |
-               \            +-----------+ data             +----------------+
+               \            +-----------+ data             +-----------------+
              IRQ\_______________________________________________/
 
 
@@ -104,10 +104,10 @@ And it talks to the first ARM core through the emulated PIA registers, using sha
      | CPU  |\ Apple  |GPIO |I/O State |   32bit   | Mouse Card ROM+ | Shared |  USB HID Stack+  | |
      +------+ \ Bus   |Pins | Machines |  Message  |  PIA Emulation  | Memory | MC6805 Emulation | |
                \      |     +----------+   FIFOs   +-----------------+        +--------+---------+ |
-             IRQ\_____|GPIO                                                         USB|PORT       |
+             IRQ\_____|_________________________________________________________/   USB|PORT       |
                       +----------------------------------------------------------------|-----------+
                                                                                        |
-                                                                                       |  +-----+-----+
+                                                                                       |  +-----------+
                                                                                         \-| USB MOUSE |
                                                                                           +-----------+ 
 

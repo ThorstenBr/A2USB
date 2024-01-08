@@ -32,6 +32,9 @@
 #include "common/buffers.h"
 #include "common/config.h"
 
+extern volatile uint32_t VblBusCycleCounter;
+extern volatile uint32_t VblCycleCount;
+
 #define A2VGA_SET_IRQ(state) gpio_put(CONFIG_PIN_IRQ, state)
 
 static __always_inline bool A2VGA_INIT(void)

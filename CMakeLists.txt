@@ -13,7 +13,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # firmware version
-set(FW_VERSION "1.2")
+set(FW_VERSION "1.3")
 
 set(PROJECT A2USB)
 set(BINARY_NAME "A2USB")

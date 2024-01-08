@@ -44,6 +44,13 @@ SOFTWARE.
 	uint32_t ProfilerMaxTime;
 #endif
 
+#ifdef PLATFORM_A2VGA
+    /* number of bus cycles since last vertical blanking */
+    volatile uint32_t VblBusCycleCounter;
+    /* number of bus cycles in between screen blanking */
+    volatile uint32_t VblCycleCount;
+#endif
+
 static __always_inline void sys_reset(void)
 {
   // Reset when the Apple II resets
@@ -91,6 +98,17 @@ static void __noinline __time_critical_func(core1_loop)()
                 continue; // do not consider the "reset" call when profiling
   #endif
             }
+        }
+
+        // keep track of bus cycles vs vertical blanking
+        {
+            // get current number of bus cycles since last VBL event
+            uint32_t CycleCount = VblBusCycleCounter;
+            // reset counter on VBL event, otherwise keep counting
+            if (CycleCount >= VblCycleCount)
+                VblBusCycleCounter = 1;
+            else
+                VblBusCycleCounter = CycleCount+1;
         }
 #endif
 

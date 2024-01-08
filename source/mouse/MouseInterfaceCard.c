@@ -128,6 +128,7 @@
 #ifdef PICO_BUILD
   #include <pico/stdlib.h>
   #include <pico/multicore.h>
+  #include <hardware/sync.h>
   #include "a2platform.h"
 #endif
 
@@ -191,14 +192,14 @@
 #define MOUSE_MODE_VBL_IRQ    (1<<3) // VBL interrupts are active even without "MOUSE_MODE_ENABLED"!
 
 /* VBL Timeouts */
-#define VBL_TIMER_60HZ     16666 /*us, = 16.666ms, for NTSC */
-#define VBL_TIMER_50HZ     20000 /*us, for PAL*/
+#define VBL_BUSCYCLES_60HZ     ((40+25)*(192+70))  /* Apple II NTSC: 40 clocks per line with 25 clocks for horizontal blanking x 192 lines + 70 vertical blanking lines */
+#define VBL_BUSCYCLES_50HZ     ((40+25)*(192+120)) /* Apple II PAL : 40 clocks per line with 25 clocks for horizontal blanking x 192 lines + 120 vertical blanking lines */
 
 /* VBL default frequency depends on region/firmware (PAL vs NTSC) */
 #ifdef FUNCTION_PAL
-    #define VBL_TIMER_DEFAULT  VBL_TIMER_50HZ  // for PAL
+    #define VBL_BUSCYCLES_DEFAULT  VBL_BUSCYCLES_50HZ  // for PAL
 #else
-    #define VBL_TIMER_DEFAULT  VBL_TIMER_60HZ  // for NTSC
+    #define VBL_BUSCYCLES_DEFAULT  VBL_BUSCYCLES_60HZ  // for NTSC
 #endif
 
 typedef struct
@@ -210,12 +211,11 @@ typedef struct
     uint8_t WritePos;
     uint8_t LastPortB;
 
-    bool     Vbl50HzMode;
-    uint64_t VblTimeUs;
-    uint32_t VblIntervalUs;
+    bool    Vbl50HzMode;
+    uint32_t LastBusCycleCounter;
 
-    uint8_t  OperatingMode;
-    uint8_t  IntState;
+    uint8_t OperatingMode;
+    uint8_t IntState;
 
     struct
     {
@@ -326,7 +326,25 @@ static void mouseCommandInit()
 {
     Mouse.Clamp.MaxX = Mouse.Clamp.MaxY = 1023;
     Mouse.Clamp.MinX = Mouse.Clamp.MinY = 0;
-    Mouse.VblTimeUs = 0;
+
+#ifdef PLATFORM_A2VGA
+    Mouse.LastBusCycleCounter = 0;
+    /* It's not cheating when it works: we need to reset the VBL cycle counter,
+     * which is maintained by the other core. To avoid a synchronization
+     * lock, which would interfere with the other core's strict execution
+     * requirements, we simple reset the VBL counter several times.
+     * We know the other core occasionally does a very quick read-modify-write
+     * on this variable, so if we write it multiple times in quick
+     * succession, we will win at least once. The VBL timing isn't exact to
+     * a nanosecond anyway, so this is absolutey good enough. */
+    for (uint8_t i=0;i<4;i++)
+    {
+        // just write the volatile variable multiple times
+        VblBusCycleCounter = 1;
+        asm volatile("nop");
+    }
+#endif
+
     mouseCommandHome();
     IRQ_DEASSERT();
 }
@@ -406,8 +424,8 @@ static void mouseCommandClamp()
 static void mouseCommandTime()
 {
     Mouse.Vbl50HzMode = (Mouse.Command & 0x1); // bit 0: 1=50Hz, 0=60Hz
-    // TODO Vbl interval is not exact enough. Should be synchronized with 6502 CPU clock anyway.
-    Mouse.VblIntervalUs = (Mouse.Vbl50HzMode) ? VBL_TIMER_50HZ : VBL_TIMER_60HZ;
+    // configure number of bus cycles in between VBL events
+    VblCycleCount = (Mouse.Vbl50HzMode) ? VBL_BUSCYCLES_50HZ : VBL_BUSCYCLES_60HZ;
 }
 
 static void mouseCommand(void)
@@ -607,26 +625,16 @@ static void mouseControllerVblIrq(void)
     // Vertical BLanking interrupt enabled?
     if ((Mouse.OperatingMode & MOUSE_MODE_VBL_IRQ) == MOUSE_MODE_VBL_IRQ)
     {
-        // we're currently not really synchronous with the CRT blanking. Just trigger at 60Hz/50Hz
-        // using internal PICO timer.
-        uint64_t t = get_absolute_time();
-        if (Mouse.VblTimeUs == 0)
-            Mouse.VblTimeUs = t+Mouse.VblIntervalUs; // restart the timer calculation
-        else
-        if (t >= Mouse.VblTimeUs)
+        // trigger interrupt when VBL bus cycle count has wrapped to be
+        // synchronous with system's vertical blanking.
+        uint32_t BusCycleCounter = VblBusCycleCounter; // copy volatile data
+        if (BusCycleCounter < Mouse.LastBusCycleCounter)
         {
-            // trigger IRQ
+            // counter has wrapped: trigger IRQ
             Mouse.IntState |= STATUS_IRQ_VBL;
-
-            /* Advance timer by interval. We do not reset it according to current time, to avoid adding up
-               timing errors, since we will always be a bit late for each IRQ. */
-            Mouse.VblTimeUs += Mouse.VblIntervalUs;
         }
-    }
-    else
-    {
-       // VBL IRQ is disabled. Clear timeout.
-       Mouse.VblTimeUs = 0;
+        // remember current cycle counter
+        Mouse.LastBusCycleCounter = BusCycleCounter;
     }
 }
 
@@ -645,18 +653,23 @@ void mouseControllerRun(void)
     mouseControllerRead(PortB);
     Mouse.LastPortB = PortB;
 
-    // generate VBL interrupts
-    mouseControllerVblIrq();
-
-    // finally, do we need to trigger the AppleIIBus IRQ line?
-    if (Mouse.IntState & (STATUS_IRQ_VBL|STATUS_IRQ_MOVEMENT|STATUS_IRQ_BUTTON))
+    // briefly block interrupts while we do the bus cycle counter check
+    uint32_t IrqStatus = save_and_disable_interrupts();
     {
-        if ((OldInt & (STATUS_IRQ_VBL|STATUS_IRQ_MOVEMENT|STATUS_IRQ_BUTTON)) == 0)
+        // generate VBL interrupts
+        mouseControllerVblIrq();
+
+        // finally, do we need to trigger the AppleIIBus IRQ line?
+        if (Mouse.IntState & (STATUS_IRQ_VBL|STATUS_IRQ_MOVEMENT|STATUS_IRQ_BUTTON))
         {
-            IRQ_ASSERT();
+            if ((OldInt & (STATUS_IRQ_VBL|STATUS_IRQ_MOVEMENT|STATUS_IRQ_BUTTON)) == 0)
+            {
+                IRQ_ASSERT();
+            }
         }
+        OldInt = Mouse.IntState;
     }
-    OldInt = Mouse.IntState;
+    restore_interrupts(IrqStatus);
 }
 
 void __time_critical_func(mouseControllerReset)(void)
@@ -670,7 +683,12 @@ void __time_critical_func(mouseControllerReset)(void)
     }
     Mouse.Clamp.MaxX = 1023;
     Mouse.Clamp.MaxY = 1023;
-    Mouse.VblIntervalUs = VBL_TIMER_DEFAULT;
+#ifdef PLATFORM_A2VGA
+    // reset number of cycles per screen
+    VblCycleCount = VBL_BUSCYCLES_DEFAULT;
+    // reset cycle counter
+    Mouse.LastBusCycleCounter = 0;
+#endif
 }
 
 void mouseControllerInit(void)
