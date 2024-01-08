@@ -69,15 +69,15 @@ The card also had an option to trigger an interrupt, to notify the 6502. This in
 
 ### Here's the original Apple II Mouse Interface Card design:
 
-                            +-----------+                   +---------------+
-                         ___|  2KB ROM  |                   |Apple II Mouse |
-    +------+            /   +-----------+                   +---------------+
+                            +-----------+                                         +--------------+
+                         ___|  2KB ROM  |                             ____________|Apple II Mouse|
+    +------+            /   +-----------+                            /            +--------------+
     | 6502 |___________/         | page selection                 |plug|
     | CPU  |\ Apple    \    +-----------+                  +-----------------+
     +------+ \ Bus      \___|    PIA    |__________________|     MC6805      |
               \             |  MC6821   | 8bit + handshake | MicroController |
                \            +-----------+ data             +----------------+
-                \_______________________________________________/
+             IRQ\_______________________________________________/
 
 
 ## How A2USB emulates the Apple II Mouse Card
@@ -100,16 +100,16 @@ And it talks to the first ARM core through the emulated PIA registers, using sha
                       +----------------------------------------------------------------------------+
                       |                         PICO Micro Controller (RP2040)                     |
      +------+         |     +----------+           +-----------------+        +------------------+ |
-     | 6502 |_________|_____| PIO 1+2  |___________|   ARM Core #1   |________|    ARM Core #2   | |
-     | CPU  |\ Apple  |GPIO |I/O State |   32bit   | A II Mouse Card | Shared |   USB HID Stack  | |
-     +------+ \ Bus   |Pins | Machines |  Message  |ROM+PIA Emulation| Memory | MC6805 Emulation | |
+     | 6502 |_________|_____| PIO 1+2  |___________|   ARM Core #1   |________|   ARM Core #2    | |
+     | CPU  |\ Apple  |GPIO |I/O State |   32bit   | Mouse Card ROM+ | Shared |  USB HID Stack+  | |
+     +------+ \ Bus   |Pins | Machines |  Message  |  PIA Emulation  | Memory | MC6805 Emulation | |
                \      |     +----------+   FIFOs   +-----------------+        +--------+---------+ |
              IRQ\_____|GPIO                                                         USB|PORT       |
                       +----------------------------------------------------------------|-----------+
                                                                                        |
-                                                                                 +-----+-----+
-                                                                                 | USB MOUSE |
-                                                                                 +-----------+ 
+                                                                                       |  +-----+-----+
+                                                                                        \-| USB MOUSE |
+                                                                                          +-----------+ 
 
 
 # Acknowledgements
