@@ -38,13 +38,12 @@
 
 	// start time measurement (count-down timer)
 	#define PROFILER_START(){ systick_hw->cvr = 0x00FFFFFF;}
-	}
 
 	// stop time measurement and calculate maximum
 	// elapsed time is actually: 0x00FFFFFF-MaxTime
 	#define PROFILER_STOP(MaxTime) { \
 		uint32_t t = systick_hw->cvr; \
-		if (t<ProfilerMaxTime) ProfilerMaxTime = t;\
+		if (t<MaxTime) MaxTime = t;\
 	}
 
 #else

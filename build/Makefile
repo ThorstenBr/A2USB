@@ -13,7 +13,7 @@ all:
 	cp MOUSE-A2VGA-PAL-4ns/*.hex RELEASE/PAL/.
 	cp MOUSE-A2VGA-PAL-4ns/*.elf RELEASE/PAL/.
 	
-	cd RELEASE && zip -r ../Release.zip *
+	cd RELEASE && zip -r ../A2USB-MOUSE.zip *
 
 clean:
 	rm -rf RELEASE/PAL RELEASE/NTSC
