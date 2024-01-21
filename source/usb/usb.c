@@ -32,6 +32,7 @@
 
 #include "hardware/gpio.h"
 #include "tusb.h"
+#include "dma/dmacopy.h"
 
 #ifdef FUNCTION_MOUSE
   #include "mouse/MouseInterfaceCard.h"
@@ -80,16 +81,16 @@ void tuh_umount_cb(uint8_t dev_addr)
 //--------------------------------------------------------------------+
 // Blinking Task
 //--------------------------------------------------------------------+
-#ifdef FUNCTION_LED
+#if (FUNCTION_LED_MODE>0)
 #ifdef FUNCTION_PROFILER
 extern uint32_t ProfilerMaxTime;
 #endif
 
-void usb_led_blinking(void)
+void DELAYED_COPY_CODE(usb_led_blinking)(void)
 {
   static uint32_t start_ms = 0;
 #ifdef FUNCTION_PROFILER
-  uint32_t interval_ms = 500;
+  const uint32_t interval_ms = 500;
   if (millis() - start_ms < interval_ms)
     return;
   // LED indicates when core1 exceeded 300ns execution time
@@ -97,13 +98,13 @@ void usb_led_blinking(void)
   //OK:4a,BAD:0x47
   // reset profiler measurement
   ProfilerMaxTime = 0x00FFFFFF;
-#elif 1
+#elif (FUNCTION_LED_MODE==1)
   // only show activity when USB mouse sends reports
   uint32_t interval_ms = 2000;
   if (millis() - start_ms < interval_ms)
     return;
   gpio_put(PICO_DEFAULT_LED_PIN, 0);
-#else
+#elif (FUNCTION_LED_MODE==2)
   // continuous blinking
   static bool led_state = false;
   uint32_t interval_ms = (UsbConnected) ? 500 : 3000;
@@ -122,9 +123,9 @@ void usb_led_blinking(void)
 #endif
 
 /*------------- MAIN -------------*/
-void usb_main(void)
+void DELAYED_COPY_CODE(usb_main)(void)
 {
-#ifdef FUNCTION_LED
+#if FUNCTION_LED_MODE>0
   gpio_init(PICO_DEFAULT_LED_PIN);
   gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 #endif
@@ -178,7 +179,7 @@ void usb_main(void)
     config_handler();
 #endif
 
-#ifdef FUNCTION_LED
+#if (FUNCTION_LED_MODE>0)
     usb_led_blinking();
 #endif
 
