@@ -21,6 +21,9 @@
 #error CONFIG_PIN_APPLEBUS_PHI0 and PHI0_GPIO must be set to the same pin
 #endif
 
+#if ((abus_wrap+1)+(abus_device_read_wrap+1))>32
+#error The ABUS PIO programs exceed the capacity of the RP2040 PIO (>32 words).
+#endif
 
 static void abus_device_read_setup(PIO pio, uint sm) {
     uint program_offset = pio_add_program(pio, &abus_device_read_program);
