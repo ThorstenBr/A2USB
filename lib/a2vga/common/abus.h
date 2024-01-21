@@ -16,6 +16,7 @@ void abus_init();
 
 #define CARD_IOSTROBE ((address & 0xf800) == 0xc800)
 
+// state machines (SM) of PIO0 (supported are SM 0-3)
 enum {
     ABUS_MAIN_SM = 0,
     ABUS_DEVICE_READ_SM = 1,

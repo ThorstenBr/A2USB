@@ -17,6 +17,15 @@
 #define CONFIG_PIN_APPLEBUS_CONTROL_BASE 26 /* 4 pins */
 #define CONFIG_PIN_APPLEBUS_PHI0 14
 #else
+/* GPIO0-7: 6502 bus D0-D7
+ * GPIO8  : DEVSEL
+ * GPIO9  : R/W
+ * GPIO10 : data bus transceiver direction
+ * GPIO11 : data bus transceiver enable
+ * GPIO12 : address bus A0-A7 transceiver enable
+ * GPIO13 : address bus A8-A15 transceiver enable
+ * GPIO26 : PHI0
+ */
 #define CONFIG_PIN_APPLEBUS_DATA_BASE 0 /* 8+2 pins */
 #define CONFIG_PIN_APPLEBUS_DEVSEL (CONFIG_PIN_APPLEBUS_DATA_BASE+8)
 #define CONFIG_PIN_APPLEBUS_RW     (CONFIG_PIN_APPLEBUS_DATA_BASE+9)

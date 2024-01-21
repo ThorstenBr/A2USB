@@ -10,7 +10,7 @@
 ;  * Bus clock used is PHI0, wired to GPIO 26
 ;  * JMP pin is mapped to the R/W signal
 ;  * IN pins are mapped to ~DEVSEL, R/W, and Data[7:0]
-;  * SET pins are mapped to the transceiver enable signals
+;  * SET pins are mapped to the transceiver enable signals (pin 0: data bus, pin 1: address bus low, pin 2: address bus high)
 ;  * input shift left & autopush @ 26 bits
 ;  * run at about 250MHz (4ns/instruction)
 ;
@@ -21,7 +21,7 @@
 ;      x  - select Data, active low
 .wrap_target
 next_bus_cycle:
-    set PINS, 0b011                     ; disable tranceivers
+    set PINS, 0b011                     ; enable AddrHi tranceiver
     wait 1 GPIO, PHI0_GPIO [5+2]        ; wait for PHI0 to rise.
     set PINS, 0b011  [5+3]              ; enable AddrHi tranceiver and delay for transceiver propagation delay (24ns)
     in PINS, 8                          ; read AddrHi[7:0]
@@ -55,7 +55,7 @@ read_cycle:
 ;  * Bus clock used is PHI0, wired to GPIO 26
 ;  * JMP pin is the ~DEVSEL signal
 ;  * OUT pins are the 8 data signals
-;  * SET pins are the Data transceiver control signals
+;  * SET pins are the Data transceiver control signals (pin 0: direction, pin 1: enable)
 ;
 ; SET bits for tranceiver control:
 ;  0bxx
@@ -87,7 +87,7 @@ wait_loop:
     ; the current time is P0+428ns
 
     wait 0 GPIO, PHI0_GPIO  [2+2]       ; wait for PHI0 to fall then hold for 12ns  (2 clocks (input synchronizers) + 7 instructions)
-    set PINS, 0b10                      ; disable Data tranceiver to tri-state the data bus
+    set PINS, 0b10                      ; disable Data transceiver to tri-state the data bus, select input direction
 
     mov OSR, NULL
     out PINDIRS, 8                      ; reset data pins as inputs

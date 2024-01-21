@@ -21,7 +21,7 @@
 ;      x  - select Data, active low
 .wrap_target
 next_bus_cycle:
-    set PINS, 0b011                     ; disable tranceivers
+    set PINS, 0b011                     ; enable AddrHi tranceiver
     wait 1 GPIO, PHI0_GPIO [2]          ; wait for PHI0 to rise.
     set PINS, 0b011  [2]                ; enable AddrHi tranceiver and delay for transceiver propagation delay (24ns)
     in PINS, 8                          ; read AddrHi[7:0]
