@@ -93,7 +93,9 @@ static void abus_main_setup(PIO pio, uint sm) {
 
 
 void abus_init() {
+    // configure state machine to write data for read-cycles to the 6502 bus
     abus_device_read_setup(CONFIG_ABUS_PIO, ABUS_DEVICE_READ_SM);
+    // configure main state machine to monitor 6502 bus cycles
     abus_main_setup(CONFIG_ABUS_PIO, ABUS_MAIN_SM);
 
     pio_enable_sm_mask_in_sync(CONFIG_ABUS_PIO, (1 << ABUS_MAIN_SM) | (1 << ABUS_DEVICE_READ_SM));
