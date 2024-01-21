@@ -87,14 +87,25 @@ static void abus_main_setup(PIO pio, uint sm) {
     // configure GPIO for PHI0 input
     pio_gpio_init(pio, CONFIG_PIN_APPLEBUS_PHI0);
     gpio_set_pulls(CONFIG_PIN_APPLEBUS_PHI0, false, false);
+    gpio_set_input_hysteresis_enabled(CONFIG_PIN_APPLEBUS_PHI0, true);
+
     // configure 4 GPIOs for transceiver control
     for(int pin=CONFIG_PIN_APPLEBUS_CONTROL_BASE; pin < CONFIG_PIN_APPLEBUS_CONTROL_BASE+4; pin++) {
         pio_gpio_init(pio, pin);
+        gpio_set_slew_rate(pin, GPIO_SLEW_RATE_FAST);
+        gpio_set_drive_strength(pin, GPIO_DRIVE_STRENGTH_12MA);
     }
+
     // configure 8 GPIOs for data bus + 2 GPIOs for DEVSEL/RW
     for(int pin=CONFIG_PIN_APPLEBUS_DATA_BASE; pin < CONFIG_PIN_APPLEBUS_DATA_BASE+10; pin++) {
         pio_gpio_init(pio, pin);
         gpio_set_pulls(pin, false, false);
+        gpio_set_input_hysteresis_enabled(pin, false);
+        if (pin < (CONFIG_PIN_APPLEBUS_DATA_BASE+8))
+        {
+            gpio_set_slew_rate(pin, GPIO_SLEW_RATE_FAST);
+            gpio_set_drive_strength(pin, GPIO_DRIVE_STRENGTH_8MA);
+        }
     }
 }
 
