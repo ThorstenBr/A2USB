@@ -46,7 +46,7 @@ The following boards can be used to run the A2USB firmware. Some of them require
 * More supported hardware platforms are coming! Watch this spot... :)
 
 # Installation
-* Download the latest A2USB firmware ZIP file from the [Releases](/Releases) section.
+* Download the latest A2USB firmware ZIP file from the [Releases](https://github.com/ThorstenBr/A2USB/releases) section.
    * ZIP file contains separate firmware for NTSC/PAL regions. Difference is only the default mouse interrupt frequency (PAL 50Hz / NTSC 60Hz).
    * According to Apple II Technical Notes, the original Mouse Interface Card was also shipped with variants for PAL / NTSC, with differing default interrupt rates.
 * **Remove the PICO (or entire card) from the Apple II**.
