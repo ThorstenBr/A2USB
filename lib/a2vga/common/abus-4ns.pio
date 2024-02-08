@@ -5,6 +5,9 @@
 ; Apple II bus interface
 ; Ref: Understanding the Apple II, pages 4-7, 7-8
 
+;SN74LVC245AN propagation delay at 3.3V is below 10ns.
+;The PICO GPIO outputs require about 12ns until the output level is changed (slew rate).
+
 .program abus
 ; Prerequisites:
 ;  * Bus clock used is PHI0, wired to GPIO 26
@@ -14,7 +17,7 @@
 ;  * input shift left & autopush @ 26 bits
 ;  * run at about 250MHz (4ns/instruction)
 ;
-; SET bits for tranceiver control:
+; SET bits for transceiver control:
 ;  0bxxx
 ;    x    - select AddrHi, active low
 ;     x   - select AddrLo, active low
@@ -57,7 +60,7 @@ read_cycle:
 ;  * OUT pins are the 8 data signals
 ;  * SET pins are the Data transceiver control signals (pin 0: direction, pin 1: enable)
 ;
-; SET bits for tranceiver control:
+; SET bits for transceiver control:
 ;  0bxx
 ;    x  - select Data transceiver (active low)
 ;     x - Data transceiver direction (0=input, 1=output)

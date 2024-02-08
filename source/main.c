@@ -119,12 +119,6 @@ static void __noinline __time_critical_func(core1_loop)()
     }
 }
 
-static void DELAYED_COPY_CODE(core0_loop)()
-{
-    for(;;)
-        usb_main();
-}
-
 extern uint32_t __ram_delayed_copy_source__[];
 extern uint32_t __ram_delayed_copy_start__[];
 extern uint32_t __ram_delayed_copy_end__[];
@@ -144,7 +138,7 @@ int main()
     dmacpy32(__ram_delayed_copy_start__, __ram_delayed_copy_end__, __ram_delayed_copy_source__);
 
     // start the normal processing stuff on core 0
-    core0_loop();
+    usb_main();
 
     return 0;
 }
